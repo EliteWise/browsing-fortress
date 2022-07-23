@@ -1,0 +1,10 @@
+{
+    "name": "Url Checker",
+    "description": "Detection of malicious sites",
+    "version": "0.0.1",
+    "manifest_version": 3,
+    "background": {
+        "service_worker": "main.js"
+      },
+    "permissions": ["storage", "tabs", "management"]
+}

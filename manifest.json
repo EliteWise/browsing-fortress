@@ -6,5 +6,23 @@
     "background": {
         "service_worker": "main.js"
       },
-    "permissions": ["storage", "tabs", "management"]
+    "permissions": ["storage", "tabs", "management", "activeTab",
+    "scripting"],
+    "host_permissions": [
+      "https://safebrowsing.googleapis.com/*"
+  ],
+  "externally_connectable": {
+    "matches": ["https://safebrowsing.googleapis.com/*"]
+  },
+  "content_scripts": [{
+    "matches": ["<all_urls>"],
+    "js": ["content-script.js"]
+  }],
+  "web_accessible_resources": [
+    {
+        "resources": ["./credentials.json"],
+        "matches": ["<all_urls>"],
+        "extension_ids": []
+    }
+]
 }

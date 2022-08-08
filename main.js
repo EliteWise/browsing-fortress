@@ -38,7 +38,7 @@ function requestSafeBrowsingAPI(url) {
       "clientVersion": "1.5.2"
     },
     "threatInfo": {
-      "threatTypes":      ["MALWARE", "SOCIAL_ENGINEERING"],
+      "threatTypes":      ["MALWARE", "SOCIAL_ENGINEERING", "POTENTIALLY_HARMFUL_APPLICATION", "UNWANTED_SOFTWARE", "THREAT_TYPE_UNSPECIFIED"],
       "platformTypes":    ["WINDOWS"],
       "threatEntryTypes": ["URL"],
       "threatEntries": [

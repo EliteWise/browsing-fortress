@@ -11,6 +11,14 @@
     "host_permissions": [
       "https://safebrowsing.googleapis.com/*"
   ],
+  "action": {
+    "default_icon": {
+        "32": "images/icon.png"
+        
+    },
+    "default_title": "Test",
+    "default_popup": "popup.html"
+},
   "externally_connectable": {
     "matches": ["https://safebrowsing.googleapis.com/*"]
   },

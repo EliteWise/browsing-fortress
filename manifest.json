@@ -7,7 +7,7 @@
         "service_worker": "main.js"
       },
     "permissions": ["storage", "tabs", "management", "activeTab",
-    "scripting"],
+    "scripting", "background"],
     "host_permissions": [
       "https://safebrowsing.googleapis.com/*"
   ],
@@ -32,6 +32,5 @@
         "matches": ["<all_urls>"],
         "extension_ids": []
     }
-],
-"icons": { "16": "icon16.png" }
+]
 }

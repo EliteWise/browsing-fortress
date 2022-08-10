@@ -32,7 +32,8 @@ app.post('/check-url', (req, res) => {
 app.post('/add-url', (req, res) => {
   const url = new Url({
     url: req.body.url,
-    safe: false
+    safe: req.body.isSafe,
+    threatType: req.body.threatType
   });
 
   url.save()

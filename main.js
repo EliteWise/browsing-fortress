@@ -74,6 +74,13 @@ chrome.runtime.onMessage.addListener((msg, sender, response) => {
     let url = tabs[0].url;
     console.log('Active Tab Url: ' + url)
 
+    if(url.includes()) {
+        chrome.action.setIcon({path: "/images/red_icon.png"})
+    } else {
+        chrome.action.setIcon({path:"/images/green_icon.png"})
+    }
+
+
     // asynchronous call //
 
     checkUrl(url).then(resp =>

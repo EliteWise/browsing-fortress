@@ -6,15 +6,18 @@
     "background": {
         "service_worker": "main.js"
       },
+    
     "permissions": ["storage", "tabs", "management", "activeTab",
     "scripting"],
     "host_permissions": [
       "https://safebrowsing.googleapis.com/*"
-  ],
+  ],           
   "action": {
     "default_icon": {
-        "32": "images/icon.png"
-        
+      "32": "/images/red_icon.png",
+      "32": "/images/green_icon.png",
+      "32": "/images/gray_icon.png"
+    
     },
     "default_title": "Test",
     "default_popup": "popup.html"

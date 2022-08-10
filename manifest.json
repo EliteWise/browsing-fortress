@@ -35,5 +35,6 @@
         "matches": ["<all_urls>"],
         "extension_ids": []
     }
-]
+],
+"icons": { "16": "icon16.png" }
 }

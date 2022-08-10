@@ -9,6 +9,10 @@ const urlSchema = new Schema({
     safe: {
         type: Boolean,
         required: true
+    },
+    threatType: {
+        type: String,
+        required: true
     }
 }, { timestamps: true });
 

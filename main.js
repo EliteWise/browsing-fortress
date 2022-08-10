@@ -12,6 +12,10 @@ function isObjectEmpty(object) {
   return JSON.stringify(object) === "{}";
 }
 
+function extractRoot(url) {
+  return url.substr(url.indexOf("/") + 2).split('/')[0];
+}
+
 async function checkUrl (url) {
   const response = await fetch("http://localhost:3000/check-url", {
       method: 'POST',
@@ -27,8 +31,20 @@ async function checkUrl (url) {
       return null;
     }
 
+    trim(url);
+
     // The url exist, we return a json object, containing the fields 'url' and 'isSafe' //
     return await response.json();
+}
+
+function addUrl(url, isSafe, threatType) {
+  fetch("http://localhost:3000/add-url", {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({url: arguments[0], isSafe: arguments[1], threatType: arguments[2]}),
+  });
 }
 
 function requestSafeBrowsingAPI(url) {
@@ -64,7 +80,14 @@ function requestSafeBrowsingAPI(url) {
     }
     return response.json();
 })
-  .then(data => console.log("API Response: " + (isObjectEmpty(data) ? 'Safe' : JSON.stringify(data))));
+  .then(data => {
+    if(isObjectEmpty(data)) {
+      addUrl(url, true, null);
+    } else {
+      var jsonData = JSON.stringify(data);
+      addUrl(jsonData.url, false, jsonData.threatType);
+    }
+  });
   });
 }
 

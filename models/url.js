@@ -11,8 +11,7 @@ const urlSchema = new Schema({
         required: true
     },
     threatType: {
-        type: String,
-        required: true
+        type: String
     }
 }, { timestamps: true });
 

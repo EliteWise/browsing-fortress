@@ -8,7 +8,7 @@
       },
     
     "permissions": ["storage", "tabs", "management", "activeTab",
-    "scripting"],
+    "scripting", "background"],
     "host_permissions": [
       "https://safebrowsing.googleapis.com/*"
   ],           

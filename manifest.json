@@ -14,10 +14,7 @@
   ],           
   "action": {
     "default_icon": {
-      "32": "/images/red_icon.png",
-      "32": "/images/green_icon.png",
-      "32": "/images/gray_icon.png"
-    
+      "24": "/images/secure-shield.png"
     },
     "default_title": "Test",
     "default_popup": "popup.html"

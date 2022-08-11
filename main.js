@@ -22,7 +22,7 @@ async function checkUrl (url) {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({"url": url})
+      body: JSON.stringify({"url": extractRoot(url)})
     }); 
 
     if(await response.status === 204) {
@@ -30,8 +30,6 @@ async function checkUrl (url) {
       requestSafeBrowsingAPI(url);
       return null;
     }
-
-    trim(url);
 
     // The url exist, we return a json object, containing the fields 'url' and 'isSafe' //
     return await response.json();
@@ -43,7 +41,7 @@ function addUrl(url, isSafe, threatType) {
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({url: arguments[0], isSafe: arguments[1], threatType: arguments[2]}),
+    body: JSON.stringify({url: extractRoot(arguments[0]), isSafe: arguments[1], threatType: arguments[2]}),
   });
 }
 
@@ -82,10 +80,10 @@ function requestSafeBrowsingAPI(url) {
 })
   .then(data => {
     if(isObjectEmpty(data)) {
-      addUrl(url, true, null);
+      addUrl(extractRoot(url), true, null);
     } else {
       var jsonData = JSON.stringify(data);
-      addUrl(jsonData.url, false, jsonData.threatType);
+      addUrl(extractRoot(jsonData.url), false, jsonData.threatType);
     }
   });
   });
@@ -96,13 +94,6 @@ chrome.runtime.onMessage.addListener((msg, sender, response) => {
   chrome.tabs.query({active: true, lastFocusedWindow: true}, tabs => {
     let url = tabs[0].url;
     console.log('Active Tab Url: ' + url)
-
-    if(url.includes()) {
-        chrome.action.setIcon({path: "/images/red_icon.png"})
-    } else {
-        chrome.action.setIcon({path:"/images/green_icon.png"})
-    }
-
 
     // asynchronous call //
 

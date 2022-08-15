@@ -1,6 +1,6 @@
 chrome.tabs.onUpdated.addListener(function
     (tabId, changeInfo, tab) {
-        //chrome.runtime.reload();
+        // chrome.runtime.reload();
         // read changeInfo data and do something with it (like read the url)
       if (changeInfo.url) {
         
@@ -23,7 +23,14 @@ async function checkUrl (url) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({"url": extractRoot(url)})
-    }); 
+    }).catch(err => {
+      console.log(err);
+    });
+
+    // When the server doesn't respond //
+    if(response === undefined) {
+      throw new Error('Check-url request error.');
+    }
 
     if(await response.status === 204) {
       // The url doesn't exist, we call the safe browsing API //
@@ -32,6 +39,7 @@ async function checkUrl (url) {
     }
 
     // The url exist, we return a json object, containing the fields 'url' and 'isSafe' //
+    // Status should be 200 //
     return await response.json();
 }
 
@@ -42,6 +50,8 @@ function addUrl(url, isSafe, threatType) {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({url: extractRoot(arguments[0]), isSafe: arguments[1], threatType: arguments[2]}),
+  }).catch(err => {
+    console.log(err);
   });
 }
 
@@ -80,29 +90,94 @@ function requestSafeBrowsingAPI(url) {
 })
   .then(data => {
     if(isObjectEmpty(data)) {
-      addUrl(extractRoot(url), true, null);
+      // Url is Safe //
+      addUrl(url, true, null);
+
+      messagePopup({url: extractRoot(url), isSafe: true});
+      chrome.action.setIcon({path: "./images/secure-shield.png"});
+
+      urlsInfos.push({url: extractRoot(url), isSafe: true});
     } else {
+      // Url isn't Safe //
       var jsonData = JSON.stringify(data);
-      addUrl(extractRoot(jsonData.url), false, jsonData.threatType);
+      addUrl(jsonData.url, false, jsonData.threatType);
+
+      messagePopup({url: extractRoot(jsonData.url), isSafe: false, threatType: jsonData.threatType});
+      sendNotification("The extension has detected a malicious site: " + extractRoot(jsonData.url));
+      chrome.action.setIcon({path: "./images/unsecured-shield.png"});
+
+      urlsInfos.push({url: extractRoot(url), isSafe: false, threatType: jsonData.threatType});
     }
+  }).catch(err => {
+    console.log(err);
   });
+  }).catch(err => {
+    console.log(err);
   });
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, response) => {
 
-  chrome.tabs.query({active: true, lastFocusedWindow: true}, tabs => {
+  chrome.tabs.query({active: true, currentWindow: true}, tabs => {
     let url = tabs[0].url;
-    console.log('Active Tab Url: ' + url)
 
     // asynchronous call //
 
-    checkUrl(url).then(resp =>
+    checkUrl(url).then(resp => {
       console.log(resp)
       // Check if the url is safe, then alert the client //
-    );
+      messagePopup(resp);
+      urlsInfos.push(resp);
+    });
 
   });
 
     return true;
+});
+
+// Array of objects, to store urls infos after the user has typed it //
+var urlsInfos = [];
+
+chrome.tabs.onActivated.addListener(function(activeInfo) {
+  chrome.tabs.query({active: true, currentWindow: true}, tabs => {
+    let url = tabs[0].url;
+    console.log('Active Tab Url: ' + url);
+
+    let urlInfo = urlsInfos.find(obj => obj['url'] == extractRoot(url));
+    messagePopup(urlInfo);
+  });
+});
+
+function messagePopup(data) {
+  chrome.runtime.onConnect.addListener(function(port) {
+    console.log('Popup Connection Established.');
+    port.postMessage(data);
+    port.onMessage.addListener(function(msg) {
+      port.postMessage(data);
+    });
+  });
+}
+
+function sendNotification(message, requireInteraction) {
+  chrome.notifications.create(
+    "install-notif",
+    {
+      type: "basic",
+      iconUrl: "./images/secure-shield.png",
+      title: "Url Checker",
+      message: message,
+      requireInteraction: requireInteraction,
+    },
+    function () {}
+  );
+}
+
+chrome.runtime.onInstalled.addListener(function(details){
+  if(details.reason == "install"){
+      // Handle a first install
+      sendNotification("The extension is successfully installed!", false);
+  }else if(details.reason == "update"){
+      // Handle an update
+      sendNotification("The extension is successfully updated!", false);
+  }
 });

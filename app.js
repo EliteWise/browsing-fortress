@@ -24,9 +24,12 @@ app.post('/testReq', function(req, res, next){
 app.post('/check-url', (req, res) => {
   Url.find({ url: req.body.url })
   .then(doc => {
-    console.log(doc[0]);
+    console.log(doc);
     doc.length === 0 ? res.status(204).json(null) : res.status(200).json({ url: doc[0].url, isSafe: doc[0].safe });
-  });
+  })
+  .catch((err) => {
+      console.log(err);
+    });
 });
 
 app.post('/add-url', (req, res) => {

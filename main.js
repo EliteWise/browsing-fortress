@@ -126,6 +126,7 @@ chrome.runtime.onMessage.addListener((msg, sender, response) => {
     checkUrl(url).then(resp => {
       console.log(resp)
       // Check if the url is safe, then alert the client //
+      resp.isSafe === true ? chrome.action.setIcon({path: "./images/secure-shield.png"}) : chrome.action.setIcon({path: "./images/unsecured-shield.png"});
       messagePopup(resp);
       urlsInfos.push(resp);
     });
@@ -145,6 +146,9 @@ chrome.tabs.onActivated.addListener(function(activeInfo) {
 
     let urlInfo = urlsInfos.find(obj => obj['url'] == extractRoot(url));
     messagePopup(urlInfo);
+
+    // Check if the url is safe, then alert the client //
+    urlInfo.isSafe === true ? chrome.action.setIcon({path: "./images/secure-shield.png"}) : chrome.action.setIcon({path: "./images/unsecured-shield.png"});
   });
 });
 

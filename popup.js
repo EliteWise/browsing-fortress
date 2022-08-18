@@ -1,6 +1,6 @@
 window.onload = function() {
-    console.log("onload" + Date())
-  }
+  console.log("onload" + Date())
+}
 
 var port = chrome.runtime.connect();
 port.onMessage.addListener(function(msg) {
@@ -9,10 +9,14 @@ port.onMessage.addListener(function(msg) {
       console.log(chrome.runtime.lastError.message);
     }*/
 
+    // URL Update //
+
     var url = document.getElementById("url");
     url.style.textDecoration = "underline";
     url.style.fontSize = "17";
     url.innerHTML = msg.url;
+
+    // Is Safe Update //
 
     switch(msg.isSafe) {
       case true:
@@ -24,5 +28,12 @@ port.onMessage.addListener(function(msg) {
         document.body.style.background = 'linear-gradient(to right, #870000, #190a05)';
         break;
     }
+
+    // Counter Update //
     
+    chrome.storage.sync.get(['countSafeUrls', 'countUnsafeUrls']).then(result => {
+      document.getElementById("safe-counter").innerHTML = result.countSafeUrls;
+      document.getElementById("unsafe-counter").innerHTML = (result.countUnsafeUrls === undefined ? 0 : result.countUnsafeUrls);
+    });
+
 });

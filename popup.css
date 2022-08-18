@@ -36,3 +36,9 @@ body {
 .safe-counter, .unsafe-counter {
     padding: 3px 0;
 }
+
+#unsafe-counter, #safe-counter
+{
+    display:inline;
+    vertical-align: middle;
+}

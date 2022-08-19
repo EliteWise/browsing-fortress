@@ -36,6 +36,7 @@ async function checkUrl (url) {
       // The url doesn't exist, we call the safe browsing API //
       requestSafeBrowsingAPI(url);
       return null;
+      
     }
 
     // The url exist, we return a json object, containing the fields 'url' and 'isSafe' //
@@ -185,3 +186,41 @@ chrome.runtime.onInstalled.addListener(function(details){
       sendNotification("The extension is successfully updated!", false);
   }
 });
+
+
+
+  function getCountUrlSafe(){
+    chrome.storage.sync.get(['count-url-safe'], function(result) {
+      console.log('Value currently is ' + result.count-url-safe);
+    });
+  }
+  
+  function getCountUrlUnsafe(){
+    chrome.storage.sync.get(['count-url-unsafe'], function(result) {
+      console.log('Value currently is ' + result.count-url-unsafe);
+    });
+  }
+
+  function setCountUrl(){
+    chrome.storage.sync.set({'count-url-safe': value,'count-url-unsafe': value}, function() {
+      console.log('Value is set to ' + value);
+    });
+   }
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+

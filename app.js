@@ -67,3 +67,13 @@ app.get('/get-url/:url/:safe', (req, res) => {
       console.log(err);
     });
 });
+
+app.get('/unsafe', (req, res) => {
+  Url.find({ safe: false }).select('url safe')
+    .then((result) => {
+      res.status(200).json({result});
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+});

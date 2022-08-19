@@ -97,7 +97,8 @@ function requestSafeBrowsingAPI(url) {
       messagePopup({url: extractRoot(url), isSafe: true});
       chrome.action.setIcon({path: "./images/secure-shield.png"});
 
-      urlsInfos.push({url: extractRoot(url), isSafe: true});
+      updateChromeStorage(url, true);
+      urlsInfos.pushUniqueUrl({url: extractRoot(url), isSafe: true});
     } else {
       // Url isn't Safe //
       var jsonData = JSON.stringify(data);
@@ -107,7 +108,8 @@ function requestSafeBrowsingAPI(url) {
       sendNotification("The extension has detected a malicious site: " + extractRoot(jsonData.url));
       chrome.action.setIcon({path: "./images/unsecured-shield.png"});
 
-      urlsInfos.push({url: extractRoot(url), isSafe: false, threatType: jsonData.threatType});
+      updateChromeStorage(url, false);
+      urlsInfos.pushUniqueUrl({url: extractRoot(url), isSafe: false, threatType: jsonData.threatType});
     }
   }).catch(err => {
     console.log(err);
@@ -127,9 +129,12 @@ chrome.runtime.onMessage.addListener((msg, sender, response) => {
     checkUrl(url).then(resp => {
       console.log(resp)
       // Check if the url is safe, then alert the client //
-      resp.isSafe === true ? chrome.action.setIcon({path: "./images/secure-shield.png"}) : chrome.action.setIcon({path: "./images/unsecured-shield.png"});
       messagePopup(resp);
-      urlsInfos.push(resp);
+
+      updateChromeStorage(resp.url, resp.isSafe);
+      urlsInfos.pushUniqueUrl(resp);
+
+      updateIcon(resp.isSafe);
     });
 
   });
@@ -149,9 +154,11 @@ chrome.tabs.onActivated.addListener(function(activeInfo) {
     messagePopup(urlInfo);
 
     // Check if the url is safe, then alert the client //
-    urlInfo.isSafe === true ? chrome.action.setIcon({path: "./images/secure-shield.png"}) : chrome.action.setIcon({path: "./images/unsecured-shield.png"});
+    updateIcon(urlInfo.isSafe);
   });
 });
+
+// Used to send data through a connection to popup.js //
 
 function messagePopup(data) {
   chrome.runtime.onConnect.addListener(function(port) {
@@ -177,16 +184,44 @@ function sendNotification(message, requireInteraction) {
   );
 }
 
+function updateIcon(isSafe) {
+  isSafe === true ? chrome.action.setIcon({path: "./images/secure-shield.png"}) : chrome.action.setIcon({path: "./images/unsecured-shield.png"});
+}
+
+// Access Chrome Storage to store counters of the user //
+
+function updateChromeStorage(url, isSafe) {
+  if(urlsInfos.find(elem => elem.url === url) != undefined) return;
+    switch(isSafe) {
+      case true:
+        chrome.storage.sync.get(['countSafeUrls'], function(result) {
+          chrome.storage.sync.set({countSafeUrls: (result.countSafeUrls == undefined ? 1 : result.countSafeUrls + 1)}, function() {
+          });
+        });
+        break;
+      case false:
+        chrome.storage.sync.get(['countUnsafeUrls'], function(result) {
+          chrome.storage.sync.set({countUnsafeUrls: (result.countUnsafeUrls == undefined ? 1 : result.countUnsafeUrls + 1)}, function() {
+          });
+        });
+        break;
+    }
+  
+}
+
+// Popup notification in the right corner //
+
 chrome.runtime.onInstalled.addListener(function(details){
   if(details.reason == "install"){
       // Handle a first install
       sendNotification("The extension is successfully installed!", false);
-  }else if(details.reason == "update"){
+  } else if(details.reason == "update"){
       // Handle an update
       sendNotification("The extension is successfully updated!", false);
   }
 });
 
+<<<<<<< HEAD
 
 
   function getCountUrlSafe(){
@@ -224,3 +259,8 @@ chrome.runtime.onInstalled.addListener(function(details){
 
 
 
+=======
+Array.prototype.pushUniqueUrl = function(obj) {
+  urlsInfos.findIndex(elem => elem.url == obj.url) === -1 ? urlsInfos.push(obj) : null;
+};
+>>>>>>> 3e1e27606043db5433809922784f1135d63de26e

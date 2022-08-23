@@ -19,17 +19,14 @@ port.onMessage.addListener(function(msg) {
     var safeCounter = document.getElementById("safeCounter");
     safeCounter.innerHTML = msg.isSafe;
 
-<<<<<<< HEAD
+
   
     var unsafeCounter = document.getElementById("unsafeCounter");
     unsafeCounter.innerHTML = msg.isSafe;
     
-    
-    
-=======
     // Is Safe Update //
 
->>>>>>> 3e1e27606043db5433809922784f1135d63de26e
+
     switch(msg.isSafe) {
       case true:
         document.getElementById("safe").innerHTML = "Safe: Yes";

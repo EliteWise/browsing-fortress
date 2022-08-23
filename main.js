@@ -221,7 +221,7 @@ chrome.runtime.onInstalled.addListener(function(details){
   }
 });
 
-<<<<<<< HEAD
+
 
 
   function getCountUrlSafe(){
@@ -250,17 +250,7 @@ chrome.runtime.onInstalled.addListener(function(details){
 
 
 
-
-
-
-
-
-
-
-
-
-=======
 Array.prototype.pushUniqueUrl = function(obj) {
   urlsInfos.findIndex(elem => elem.url == obj.url) === -1 ? urlsInfos.push(obj) : null;
 };
->>>>>>> 3e1e27606043db5433809922784f1135d63de26e
+

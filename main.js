@@ -126,7 +126,11 @@ chrome.runtime.onMessage.addListener((msg, sender, response) => {
     // asynchronous call //
 
     checkUrl(url).then(resp => {
-      console.log(resp)
+
+      // If error listed below is detected, execution will stop here //
+      
+      if(preventUrlErrors(resp)) return;
+
       // Check if the url is safe, then alert the client //
       messagePopup(resp);
 
@@ -150,6 +154,11 @@ chrome.tabs.onActivated.addListener(function(activeInfo) {
     console.log('Active Tab Url: ' + url);
 
     let urlInfo = urlsInfos.find(obj => obj['url'] == extractRoot(url));
+
+    // If error listed below is detected, execution will stop here //
+
+    if(preventUrlErrors(url)) return;
+
     messagePopup(urlInfo);
 
     // Check if the url is safe, then alert the client //
@@ -223,3 +232,22 @@ chrome.runtime.onInstalled.addListener(function(details){
 Array.prototype.pushUniqueUrl = function(obj) {
   urlsInfos.findIndex(elem => elem.url == obj.url) === -1 ? urlsInfos.push(obj) : null;
 };
+
+function preventUrlErrors(url) {
+  if(url == undefined || url == null || url == 'chrome://newtab/' || url == 'chrome://extensions/' || url.length === 0) return true;
+}
+
+// Used to prevent request abuse from user, it set and update request counter in chrome storage //
+
+updateCheckerLimit = (value) => {
+  if(urlsInfos.find(elem => elem.url === url) != undefined) return;
+
+  var checkerLimitValue = chrome.storage.sync.get(['checker-limit']);
+
+  if(checkerLimitValue == undefined) {
+    chrome.storage.sync.set({'checker-limit': 1});
+  } else {
+    chrome.storage.sync.set({'checker-limit': checkerLimitValue + 1});
+  }
+  
+}

@@ -15,8 +15,17 @@ port.onMessage.addListener(function(msg) {
     url.style.textDecoration = "underline";
     url.style.fontSize = "17";
     url.innerHTML = msg.url;
+    
+    var safeCounter = document.getElementById("safeCounter");
+    safeCounter.innerHTML = msg.isSafe;
 
+
+  
+    var unsafeCounter = document.getElementById("unsafeCounter");
+    unsafeCounter.innerHTML = msg.isSafe;
+    
     // Is Safe Update //
+
 
     switch(msg.isSafe) {
       case true:

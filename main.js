@@ -36,6 +36,7 @@ async function checkUrl (url) {
       // The url doesn't exist, we call the safe browsing API //
       requestSafeBrowsingAPI(url);
       return null;
+      
     }
 
     // The url exist, we return a json object, containing the fields 'url' and 'isSafe' //

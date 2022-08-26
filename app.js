@@ -68,10 +68,26 @@ app.get('/get-url/:url/:safe', (req, res) => {
     });
 });
 
-app.get('/unsafe', (req, res) => {
-  Url.find({ safe: false }).select('url safe')
+app.get('/listUnsafeUrls', (req, res) => {
+  Url.find({ safe: false }).select('-_id url safe')
     .then((result) => {
-      res.status(200).json({result});
+      res.status(200).json(result);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+});
+
+app.get('/countUrls', (req, res) => {
+  Url.aggregate([{
+    $group: 
+    {
+        _id: "$safe",
+        count: { $sum: 1 }
+    }
+  }])
+    .then((result) => {
+      res.status(200).json({safe: result[1].count, unsafe: result[0].count});
     })
     .catch((err) => {
       console.log(err);

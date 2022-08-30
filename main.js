@@ -131,6 +131,8 @@ chrome.runtime.onMessage.addListener((msg, sender, response) => {
       
       if(preventUrlErrors(resp)) return;
 
+      updateCheckerLimit(resp.url);
+
       // Check if the url is safe, then alert the client //
       messagePopup(resp);
 
@@ -239,15 +241,18 @@ function preventUrlErrors(url) {
 
 // Used to prevent request abuse from user, it set and update request counter in chrome storage //
 
-updateCheckerLimit = (value) => {
+updateCheckerLimit = (url) => {
   if(urlsInfos.find(elem => elem.url === url) != undefined) return;
 
-  var checkerLimitValue = chrome.storage.sync.get(['checker-limit']);
+  chrome.storage.sync.get(['checker-limit']).then(result => {
+    var checkerLimitValue = result['checker-limit'];
+    console.log("Limit Value: " + checkerLimitValue);
 
-  if(checkerLimitValue == undefined) {
-    chrome.storage.sync.set({'checker-limit': 1});
-  } else {
-    chrome.storage.sync.set({'checker-limit': checkerLimitValue + 1});
-  }
-  
+    if(checkerLimitValue == undefined || checkerLimitValue == null) {
+      chrome.storage.sync.set({'checker-limit': 1});
+    } else {
+      chrome.storage.sync.set({'checker-limit': checkerLimitValue + 1});
+    }
+  });
+
 }

@@ -56,6 +56,10 @@ function addUrl(url, isSafe, threatType) {
 }
 
 function requestSafeBrowsingAPI(url) {
+  if(limitReached()) return;
+
+  updateCheckerLimit(extractRoot(url));
+
   var requestBody = {
     "client": {
       "clientId": "yourcompanyname",
@@ -130,8 +134,6 @@ chrome.runtime.onMessage.addListener((msg, sender, response) => {
       // If error listed below is detected, execution will stop here //
       
       if(preventUrlErrors(resp)) return;
-
-      updateCheckerLimit(resp.url);
 
       // Check if the url is safe, then alert the client //
       messagePopup(resp);
@@ -255,4 +257,10 @@ updateCheckerLimit = (url) => {
     }
   });
 
+}
+
+limitReached = () => {
+  chrome.storage.sync.get(['checker-limit'], function(result) {
+    if(result == 50) return true;
+  });
 }

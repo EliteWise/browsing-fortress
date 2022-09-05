@@ -26,7 +26,7 @@ body {
 }
 
 .title {
-    
+    position:relative
 }
 
 .url, .safe {
@@ -42,3 +42,27 @@ body {
     display:inline;
     vertical-align: middle;
 }
+
+.title #options
+{
+    position: absolute;
+    left: 30px;
+    top: 4px;
+}
+
+.title #urls-list
+{
+    position: absolute;
+    right: 30px;
+    top: 4px;
+}
+
+img
+{
+    -webkit-filter: invert(100%);
+    filter: invert(100%);
+}
+
+a:link {
+    color: #F0FFFF;
+  }

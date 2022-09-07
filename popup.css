@@ -48,6 +48,9 @@ body {
     position: absolute;
     left: 30px;
     top: 4px;
+    
+    /* V2 */
+    display: none;
 }
 
 .title #urls-list
@@ -55,12 +58,18 @@ body {
     position: absolute;
     right: 30px;
     top: 4px;
+
+    /* V2 */
+    display: none;
 }
 
 img
 {
     -webkit-filter: invert(100%);
     filter: invert(100%);
+
+    /* V2 */
+    display: none;
 }
 
 a:link {

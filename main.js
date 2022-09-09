@@ -17,7 +17,8 @@ function extractRoot(url) {
 }
 
 async function checkUrl (url) {
-  const response = await fetch("http://localhost:3000/check-url", {
+  const config = await fetch(chrome.runtime.getURL('/config.json')).then((resp) => resp.json()).then(result => result);
+  const response = await fetch(config["server-ip"] + "/check-url", {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -34,7 +35,7 @@ async function checkUrl (url) {
 
     if(await response.status === 204) {
       // The url doesn't exist, we call the safe browsing API //
-      requestSafeBrowsingAPI(url);
+      await requestSafeBrowsingAPI(url);
       return null;
     }
 
@@ -43,8 +44,8 @@ async function checkUrl (url) {
     return await response.json();
 }
 
-function addUrl(url, isSafe, threatType) {
-  fetch("http://localhost:3000/add-url", {
+function addUrl(url, isSafe, threatType, serverAddress) {
+  fetch(serverAddress + "/add-url", {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -55,7 +56,12 @@ function addUrl(url, isSafe, threatType) {
   });
 }
 
-function requestSafeBrowsingAPI(url) {
+async function requestSafeBrowsingAPI(url) {
+  const isLimitReached = await limitReached().then(result => result);
+  if(isLimitReached) return;
+
+  updateCheckerLimit(extractRoot(url));
+
   var requestBody = {
     "client": {
       "clientId": "yourcompanyname",
@@ -71,11 +77,14 @@ function requestSafeBrowsingAPI(url) {
     }
   }
 
-  fetch(chrome.runtime.getURL('/credentials.json'))
-  .then((resp) => resp.json())
-  .then(function (credentials) {
+  Promise.all([
+    fetch(chrome.runtime.getURL('/credentials.json')),
+    fetch(chrome.runtime.getURL('/config.json')),
+  ])
+  .then((resp) => Promise.all(resp.map(r => r.json())))
+  .then(function (files) {
 
-    fetch("https://safebrowsing.googleapis.com/v4/threatMatches:find?key=" + credentials[0]["webBrowsingAPI-key"], {
+    fetch("https://safebrowsing.googleapis.com/v4/threatMatches:find?key=" + files[0]["webBrowsingAPI-key"], {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -89,25 +98,26 @@ function requestSafeBrowsingAPI(url) {
     return response.json();
 })
   .then(data => {
+    var serverAddress = files[1]["server-ip"];
     if(isObjectEmpty(data)) {
-      // Url is Safe //
-      addUrl(url, true, null);
+      // Url is Safe // 
+      addUrl(url, true, null, serverAddress);
 
       messagePopup({url: extractRoot(url), isSafe: true});
       chrome.action.setIcon({path: "./images/secure-shield.png"});
 
-      updateChromeStorage(url, true);
+      updateChromeStorageCounter(url, true);
       urlsInfos.pushUniqueUrl({url: extractRoot(url), isSafe: true});
     } else {
       // Url isn't Safe //
       var jsonData = JSON.stringify(data);
-      addUrl(jsonData.url, false, jsonData.threatType);
+      addUrl(jsonData.url, false, jsonData.threatType, serverAddress);
 
       messagePopup({url: extractRoot(jsonData.url), isSafe: false, threatType: jsonData.threatType});
       sendNotification("The extension has detected a malicious site: " + extractRoot(jsonData.url));
       chrome.action.setIcon({path: "./images/unsecured-shield.png"});
 
-      updateChromeStorage(url, false);
+      updateChromeStorageCounter(url, false);
       urlsInfos.pushUniqueUrl({url: extractRoot(url), isSafe: false, threatType: jsonData.threatType});
     }
   }).catch(err => {
@@ -134,7 +144,7 @@ chrome.runtime.onMessage.addListener((msg, sender, response) => {
       // Check if the url is safe, then alert the client //
       messagePopup(resp);
 
-      updateChromeStorage(resp.url, resp.isSafe);
+      updateChromeStorageCounter(resp.url, resp.isSafe);
       urlsInfos.pushUniqueUrl(resp);
 
       updateIcon(resp.isSafe);
@@ -154,7 +164,7 @@ chrome.tabs.onActivated.addListener(function(activeInfo) {
     console.log('Active Tab Url: ' + url);
 
     let urlInfo = urlsInfos.find(obj => obj['url'] == extractRoot(url));
-
+    
     // If error listed below is detected, execution will stop here //
 
     if(preventUrlErrors(url)) return;
@@ -194,11 +204,12 @@ function sendNotification(message, requireInteraction) {
 
 function updateIcon(isSafe) {
   isSafe === true ? chrome.action.setIcon({path: "./images/secure-shield.png"}) : chrome.action.setIcon({path: "./images/unsecured-shield.png"});
+  chrome.action.setTitle({ title: "Click to display the popup!" });
 }
 
 // Access Chrome Storage to store counters of the user //
 
-function updateChromeStorage(url, isSafe) {
+function updateChromeStorageCounter(url, isSafe) {
   if(urlsInfos.find(elem => elem.url === url) != undefined) return;
     switch(isSafe) {
       case true:
@@ -214,7 +225,30 @@ function updateChromeStorage(url, isSafe) {
         });
         break;
     }
-  
+}
+
+var DateDiff = {
+ 
+  inDays: function(d1, d2) {
+      var t2 = d2.getTime();
+      var t1 = d1.getTime();
+
+      return Math.floor((t2-t1)/(24*3600*1000));
+  }
+
+}
+
+function updateChromeStorageTimerLimit() {
+  var dateNow = new Date();
+  var limitTimer = 'limit-timer';
+  chrome.storage.sync.get([limitTimer], function(result) {
+    if(result[limitTimer] === undefined) {
+      chrome.storage.sync.set({limitTimer: date});
+      return;
+    } else if(DateDiff.inDays(new Date(result[limitTimer]), dateNow) >= 1) {
+      chrome.storage.sync.remove(['checker-limit']);
+    }
+  });
 }
 
 // Popup notification in the right corner //
@@ -239,15 +273,27 @@ function preventUrlErrors(url) {
 
 // Used to prevent request abuse from user, it set and update request counter in chrome storage //
 
-updateCheckerLimit = (value) => {
+function updateCheckerLimit(url) {
   if(urlsInfos.find(elem => elem.url === url) != undefined) return;
 
-  var checkerLimitValue = chrome.storage.sync.get(['checker-limit']);
+  chrome.storage.sync.get(['checker-limit']).then(result => {
+    var checkerLimitValue = result['checker-limit'];
+    console.log("Limit Value: " + checkerLimitValue);
 
-  if(checkerLimitValue == undefined) {
-    chrome.storage.sync.set({'checker-limit': 1});
-  } else {
-    chrome.storage.sync.set({'checker-limit': checkerLimitValue + 1});
-  }
-  
+    if(checkerLimitValue == undefined || checkerLimitValue == null) {
+      chrome.storage.sync.set({'checker-limit': 1});
+    } else {
+      chrome.storage.sync.set({'checker-limit': checkerLimitValue + 1});
+    }
+  });
+
+}
+
+function limitReached() {
+  return new Promise(function(resolve, reject) {
+    chrome.storage.sync.get(['checker-limit'], function(result) {
+    
+      result['checker-limit'] >= 50 ? resolve(true) : resolve(false);
+    });
+  });
 }

@@ -1,5 +1,21 @@
 window.onload = function() {
-  console.log("onload" + Date())
+  console.log(Date());
+
+  var dc = document.getElementById("discord-contact");
+  
+  if(dc) {
+    dc.addEventListener("click", (elem) => {
+      chrome.tabs.create({url: elem.target.getAttribute("href")});
+    });
+  }
+
+  var ec = document.getElementById("email-contact");
+  
+  if(ec) {
+    ec.addEventListener("click", (elem) => {
+      chrome.tabs.create({url: elem.target.getAttribute("href")});
+    });
+  }
 }
 
 var port = chrome.runtime.connect();

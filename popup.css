@@ -72,6 +72,12 @@ img
     display: none;
 }
 
-a:link {
+a:link, a:visited 
+{
     color: #F0FFFF;
-  }
+}
+  
+a:hover, a:active 
+{
+    color: lightslategray;
+}

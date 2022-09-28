@@ -64,8 +64,8 @@ async function requestSafeBrowsingAPI(url) {
 
   var requestBody = {
     "client": {
-      "clientId": "yourcompanyname",
-      "clientVersion": "1.5.2"
+      "clientId": "Url-Ckecker",
+      "clientVersion": "1.0.0"
     },
     "threatInfo": {
       "threatTypes":      ["MALWARE", "SOCIAL_ENGINEERING", "POTENTIALLY_HARMFUL_APPLICATION", "UNWANTED_SOFTWARE", "THREAT_TYPE_UNSPECIFIED"],
@@ -84,7 +84,7 @@ async function requestSafeBrowsingAPI(url) {
   .then((resp) => Promise.all(resp.map(r => r.json())))
   .then(function (files) {
 
-    fetch("https://safebrowsing.googleapis.com/v4/threatMatches:find?key=" + files[0]["webBrowsingAPI-key"], {
+    fetch(files[1]["safebrowsing-url"] + "/threatMatches:find?key=" + files[0]["safebrowsingAPI-key"], {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'

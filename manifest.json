@@ -1,7 +1,7 @@
 {
     "name": "Link Checker",
     "description": "Detection of malicious websites.",
-    "version": "1",
+    "version": "1.0.0",
     "manifest_version": 3,
     "background": {
         "service_worker": "main.js"
@@ -16,8 +16,8 @@
     "default_icon": {
       "24": "/images/secure-shield.png"
     },
-    "default_title": "Test",
-    "default_popup": "popup.html"
+    "default_title": "Popup",
+    "default_popup": "./popup/popup.html"
 },
   "externally_connectable": {
     "matches": ["https://safebrowsing.googleapis.com/*"]

@@ -1,3 +1,9 @@
+try {
+  importScripts('./notifications.js', '../utils/date.js', './chrome-storage.js', '../utils/modifier.js', '../utils/constant.js');
+} catch (e) {
+  console.error(e);
+}
+
 chrome.tabs.onUpdated.addListener(function
     (tabId, changeInfo, tab) {
         // chrome.runtime.reload();
@@ -8,16 +14,8 @@ chrome.tabs.onUpdated.addListener(function
     }
   );
 
-function isObjectEmpty(object) {
-  return JSON.stringify(object) === "{}";
-}
-
-function extractRoot(url) {
-  return url.substr(url.indexOf("/") + 2).split('/')[0];
-}
-
 async function checkUrl (url) {
-  const config = await fetch(chrome.runtime.getURL('/config.json')).then((resp) => resp.json()).then(result => result);
+  const config = await fetch(chrome.runtime.getURL('../config.json')).then((resp) => resp.json()).then(result => result);
   const response = await fetch(config["server-ip"] + "/check-url", {
       method: 'POST',
       headers: {
@@ -78,8 +76,8 @@ async function requestSafeBrowsingAPI(url) {
   }
 
   Promise.all([
-    fetch(chrome.runtime.getURL('/credentials.json')),
-    fetch(chrome.runtime.getURL('/config.json')),
+    fetch(chrome.runtime.getURL('../credentials.json')),
+    fetch(chrome.runtime.getURL('../config.json')),
   ])
   .then((resp) => Promise.all(resp.map(r => r.json())))
   .then(function (files) {
@@ -104,7 +102,7 @@ async function requestSafeBrowsingAPI(url) {
       addUrl(url, true, null, serverAddress);
 
       messagePopup({url: extractRoot(url), isSafe: true});
-      chrome.action.setIcon({path: "./images/secure-shield.png"});
+      chrome.action.setIcon({path: SECURE_SHIELD_ICON_PATH});
 
       updateChromeStorageCounter(url, true);
       urlsInfos.pushUniqueUrl({url: extractRoot(url), isSafe: true});
@@ -114,8 +112,8 @@ async function requestSafeBrowsingAPI(url) {
       addUrl(jsonData.url, false, jsonData.threatType, serverAddress);
 
       messagePopup({url: extractRoot(jsonData.url), isSafe: false, threatType: jsonData.threatType});
-      sendNotification("The extension has detected a malicious site: " + extractRoot(jsonData.url));
-      chrome.action.setIcon({path: "./images/unsecured-shield.png"});
+      sendNotification(MALICIOUS_WEBSITE_TEXT + extractRoot(jsonData.url));
+      chrome.action.setIcon({path: UNSECURE_SHIELD_ICON_PATH});
 
       updateChromeStorageCounter(url, false);
       urlsInfos.pushUniqueUrl({url: extractRoot(url), isSafe: false, threatType: jsonData.threatType});
@@ -147,7 +145,7 @@ chrome.runtime.onMessage.addListener((msg, sender, response) => {
       updateChromeStorageCounter(resp.url, resp.isSafe);
       urlsInfos.pushUniqueUrl(resp);
 
-      updateIcon(resp.isSafe);
+      updateIconNotifs(resp.isSafe, resp.url);
     });
 
   });
@@ -172,7 +170,7 @@ chrome.tabs.onActivated.addListener(function(activeInfo) {
     messagePopup(urlInfo);
 
     // Check if the url is safe, then alert the client //
-    updateIcon(urlInfo.isSafe);
+    updateIconNotifs(urlInfo.isSafe, url);
   });
 });
 
@@ -188,112 +186,10 @@ function messagePopup(data) {
   });
 }
 
-function sendNotification(message, requireInteraction) {
-  chrome.notifications.create(
-    "install-notif",
-    {
-      type: "basic",
-      iconUrl: "./images/secure-shield.png",
-      title: "Url Checker",
-      message: message,
-      requireInteraction: requireInteraction,
-    },
-    function () {}
-  );
-}
-
-function updateIcon(isSafe) {
-  isSafe === true ? chrome.action.setIcon({path: "./images/secure-shield.png"}) : chrome.action.setIcon({path: "./images/unsecured-shield.png"});
-  chrome.action.setTitle({ title: "Click to display the popup!" });
-}
-
-// Access Chrome Storage to store counters of the user //
-
-function updateChromeStorageCounter(url, isSafe) {
-  if(urlsInfos.find(elem => elem.url === url) != undefined) return;
-    switch(isSafe) {
-      case true:
-        chrome.storage.sync.get(['countSafeUrls'], function(result) {
-          chrome.storage.sync.set({countSafeUrls: (result.countSafeUrls == undefined ? 1 : result.countSafeUrls + 1)}, function() {
-          });
-        });
-        break;
-      case false:
-        chrome.storage.sync.get(['countUnsafeUrls'], function(result) {
-          chrome.storage.sync.set({countUnsafeUrls: (result.countUnsafeUrls == undefined ? 1 : result.countUnsafeUrls + 1)}, function() {
-          });
-        });
-        break;
-    }
-}
-
-var DateDiff = {
- 
-  inDays: function(d1, d2) {
-      var t2 = d2.getTime();
-      var t1 = d1.getTime();
-
-      return Math.floor((t2-t1)/(24*3600*1000));
-  }
-
-}
-
-function updateChromeStorageTimerLimit() {
-  var dateNow = new Date();
-  var limitTimer = 'limit-timer';
-  chrome.storage.sync.get([limitTimer], function(result) {
-    if(result[limitTimer] === undefined) {
-      chrome.storage.sync.set({limitTimer: date});
-      return;
-    } else if(DateDiff.inDays(new Date(result[limitTimer]), dateNow) >= 1) {
-      chrome.storage.sync.remove(['checker-limit']);
-    }
-  });
-}
-
-// Popup notification in the right corner //
-
-chrome.runtime.onInstalled.addListener(function(details){
-  if(details.reason == "install"){
-      // Handle a first install
-      sendNotification("The extension is successfully installed!", false);
-  } else if(details.reason == "update"){
-      // Handle an update
-      sendNotification("The extension is successfully updated!", false);
-  }
-});
-
 Array.prototype.pushUniqueUrl = function(obj) {
   urlsInfos.findIndex(elem => elem.url == obj.url) === -1 ? urlsInfos.push(obj) : null;
 };
 
 function preventUrlErrors(url) {
   if(url == undefined || url == null || url == 'chrome://newtab/' || url == 'chrome://extensions/' || url.length === 0) return true;
-}
-
-// Used to prevent request abuse from user, it set and update request counter in chrome storage //
-
-function updateCheckerLimit(url) {
-  if(urlsInfos.find(elem => elem.url === url) != undefined) return;
-
-  chrome.storage.sync.get(['checker-limit']).then(result => {
-    var checkerLimitValue = result['checker-limit'];
-    console.log("Limit Value: " + checkerLimitValue);
-
-    if(checkerLimitValue == undefined || checkerLimitValue == null) {
-      chrome.storage.sync.set({'checker-limit': 1});
-    } else {
-      chrome.storage.sync.set({'checker-limit': checkerLimitValue + 1});
-    }
-  });
-
-}
-
-function limitReached() {
-  return new Promise(function(resolve, reject) {
-    chrome.storage.sync.get(['checker-limit'], function(result) {
-    
-      result['checker-limit'] >= 50 ? resolve(true) : resolve(false);
-    });
-  });
 }

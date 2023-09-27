@@ -4,7 +4,7 @@ function sendNotification(message, requireInteraction, isSafe) {
       {
         type: "basic",
         iconUrl: isSafe ? SECURE_SHIELD_ICON_PATH : UNSECURED_SHIELD_ICON_PATH,
-        title: "Url Checker",
+        title: "Browsing Fortress",
         message: message,
         requireInteraction: requireInteraction,
       },
@@ -16,6 +16,9 @@ function sendNotification(message, requireInteraction, isSafe) {
 
 chrome.runtime.onInstalled.addListener(function(details){
   if(details.reason == "install"){
+      // Confirmation of data collection policies
+      chrome.tabs.create({ url: "policies.html" })
+
       // Handle a first install
       sendNotification("The extension is successfully installed!", false, true);
   } else if(details.reason == "update"){

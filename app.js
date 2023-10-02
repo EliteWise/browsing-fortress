@@ -1,11 +1,13 @@
 const express = require('express')
 const mongoose = require('mongoose');
 const Url = require('./models/url');
+const config = require("./credentials.json");
 
 const app = express()
 const port = 3000
 
-const dbURI = 'mongodb://127.0.0.1:27017/urls';
+// Local Only - Development purpose: 'mongodb://127.0.0.1:27017/urls'
+const dbURI = `mongodb://Elite:${config.mongodb_password}@127.0.0.1:27017/urls`;
 
 mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
 .then((result) => app.listen(port))

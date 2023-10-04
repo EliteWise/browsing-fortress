@@ -7,7 +7,7 @@ const app = express()
 const port = 3000
 
 // Local Only - Development purpose: 'mongodb://127.0.0.1:27017/urls'
-const dbURI = `mongodb://Elite:${config.mongodb_password}@127.0.0.1:27017/urls`;
+const dbURI = `mongodb://Elite:${config.mongodb_password}@127.0.0.1:27017/urls?authSource=admin`;
 
 mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
 .then((result) => app.listen(port, "0.0.0.0"))

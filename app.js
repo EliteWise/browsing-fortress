@@ -10,7 +10,7 @@ const port = 3000
 const dbURI = `mongodb://Elite:${config.mongodb_password}@127.0.0.1:27017/urls`;
 
 mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
-.then((result) => app.listen(port))
+.then((result) => app.listen(port, "0.0.0.0"))
 .catch((err) => console.log(JSON.stringify(err)));
 
 app.use(express.json()) // app.use(express.text())

@@ -10,7 +10,12 @@ const port = 3000
 const dbURI = `mongodb://Elite:${config.mongodb_password}@127.0.0.1:27017/urls?authSource=admin`;
 
 mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
-.then((result) => app.listen(port, "0.0.0.0"))
+.then((result) => {
+  console.log('Connected to MongoDB');
+  app.listen(port, "0.0.0.0", () => {
+    console.log(`Server is running on http://0.0.0.0:${port}`);
+  });
+})
 .catch((err) => console.log(JSON.stringify(err)));
 
 app.use(express.json()) // app.use(express.text())
@@ -35,6 +40,7 @@ app.post('/check-url', (req, res) => {
 });
 
 app.post('/add-url', (req, res) => {
+  console.log("Adding new url: " + req.body.url)
   const url = new Url({
     url: req.body.url,
     safe: req.body.isSafe,

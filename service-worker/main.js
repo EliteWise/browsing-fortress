@@ -33,6 +33,7 @@ async function checkUrl (url) {
 
     if(await response.status === 204) {
       // The url doesn't exist, we call the safe browsing API //
+      console.log("Checking with Safe Browsing API")
       await requestSafeBrowsingAPI(url);
       return null;
     }
@@ -108,11 +109,14 @@ async function requestSafeBrowsingAPI(url) {
       urlsInfos.pushUniqueUrl({url: extractRoot(url), isSafe: true});
     } else {
       // Url isn't Safe //
-      var jsonData = JSON.stringify(data);
-      addUrl(jsonData.url, false, jsonData.threatType, serverAddress);
+      console.log(data)
+      var jsonData = data.matches[0];
+      console.log(jsonData.threat.url)
+      console.log(jsonData.threatType)
+      addUrl(jsonData.threat.url, false, jsonData.threatType, serverAddress);
 
-      messagePopup({url: extractRoot(jsonData.url), isSafe: false, threatType: jsonData.threatType});
-      sendNotification(MALICIOUS_WEBSITE_TEXT + extractRoot(jsonData.url));
+      messagePopup({url: extractRoot(jsonData.threat.url), isSafe: false, threatType: jsonData.threatType});
+      sendNotification(MALICIOUS_WEBSITE_TEXT + extractRoot(jsonData.threat.url));
       chrome.action.setIcon({path: UNSECURE_SHIELD_ICON_PATH});
 
       updateChromeStorageCounter(url, false);

@@ -7,8 +7,7 @@
         "service_worker": "./service-worker/main.js"
       },
     
-    "permissions": ["storage", "tabs", "management", "activeTab",
-    "scripting", "background", "webRequest","webNavigation", "notifications"],
+    "permissions": ["storage", "tabs", "background","webNavigation", "notifications"],
     "host_permissions": [
       "https://safebrowsing.googleapis.com/*"
   ],           

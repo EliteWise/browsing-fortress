@@ -1,7 +1,7 @@
 {
-    "name": "Link Checker",
-    "description": "Detection of malicious websites.",
-    "version": "1.0.0",
+    "name": "Browsing Fortress - Online Protection",
+    "description": "Real time detection of malicious and scam websites while you browse.",
+    "version": "1.0.1",
     "manifest_version": 3,
     "background": {
         "service_worker": "./service-worker/main.js"

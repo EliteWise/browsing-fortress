@@ -1,12 +1,26 @@
 function sendNotification(message, requireInteraction, isSafe) {
     chrome.notifications.create(
-      "install-notif",
+      "general-notif",
       {
         type: "basic",
         iconUrl: isSafe ? SECURE_SHIELD_ICON_PATH : UNSECURED_SHIELD_ICON_PATH,
         title: "Browsing Fortress",
         message: message,
         requireInteraction: requireInteraction,
+      },
+      function () {}
+    );
+  }
+
+  function sendInstallUpdateNotification(message) {
+    chrome.notifications.create(
+      "install-update-notif",
+      {
+        type: "basic",
+        iconUrl: MAIN_SHIELD_ICON_PATH,
+        title: "Browsing Fortress",
+        message: message,
+        requireInteraction: false,
       },
       function () {}
     );
@@ -20,10 +34,10 @@ chrome.runtime.onInstalled.addListener(function(details){
       chrome.tabs.create({ url: "policies.html" })
 
       // Handle a first install
-      sendNotification("The extension is successfully installed!", false, true);
+      sendInstallUpdateNotification("The extension is successfully installed!");
   } else if(details.reason == "update"){
       // Handle an update
-      sendNotification("The extension is successfully updated!", false, true);
+      sendInstallUpdateNotification("The extension is successfully updated!");
   }
 });
 

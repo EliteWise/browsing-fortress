@@ -1,3 +1,5 @@
+const MAIN_SHIELD_ICON_PATH = "../images/secure-shield-94.png";
+
 const SECURE_SHIELD_ICON_PATH = "../images/secure-shield.png";
 const UNSECURED_SHIELD_ICON_PATH = "../images/unsecured-shield.png";
 
